@@ -7,6 +7,8 @@ const mongoose = require("mongoose");
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/orders");
 const tournamentTemplateRoutes = require("./api/routes/tournamentTemplate");
+const tournamentRoutes = require("./api/routes/tournament");
+const tournamentTeamRoutes = require("./api/routes/tournamentTeam");
 const teamRoutes = require("./api/routes/team");
 const userRoutes = require('./api/routes/user');
 
@@ -42,7 +44,7 @@ app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
 app.use("/tournamentTemplates", tournamentTemplateRoutes);
 app.use("/tournaments", tournamentRoutes);
-app.use("/tournamentTeams", toutnamentTeamRoutes);
+app.use("/tournamentTeams", tournamentTeamRoutes);
 app.use("/teams", teamRoutes);
 app.use("/user", userRoutes);
 

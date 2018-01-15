@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const TournamentTeam = require("../models/tournamentTeam");
 
-exports.team_get_all = (req, res, next) => {
+exports.get_all = (req, res, next) => {
     TournamentTeam.find()
         .select('tournament team groupPos')
         .populate('tournament', 'name')
@@ -25,7 +25,7 @@ exports.team_get_all = (req, res, next) => {
         });
 };
 
-exports.team_create_team = (req, res, next) => {
+exports.create_team = (req, res, next) => {
     TournamentTeam.find({ 'tournament': req.body.tournamentId })
         .exec()
         .then(teams => {
@@ -61,7 +61,7 @@ exports.team_create_team = (req, res, next) => {
         })
 };
 
-exports.team_get_team = (req, res, next) => {
+exports.get_team = (req, res, next) => {
     TournamentTeam.findById(req.params.teamId)
         .exec()
         .then(team => {
@@ -81,7 +81,7 @@ exports.team_get_team = (req, res, next) => {
         });
 };
 
-exports.team_delete_team = (req, res, next) => {
+exports.delete_team = (req, res, next) => {
     TournamentTeam.remove({ _id: req.params.teamId })
         .exec()
         .then(result => {
@@ -96,7 +96,7 @@ exports.team_delete_team = (req, res, next) => {
         });
 };
 
-exports.team_delete_all_teams = (req, res, next) => {
+exports.delete_all_teams = (req, res, next) => {
     TournamentTeam.remove()
         .exec()
         .then(result => {

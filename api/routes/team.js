@@ -5,14 +5,16 @@ const AuthController = require('../middleware/check-auth');
 const TeamController = require('../controllers/team');
 
 // Handle incoming GET requests to /team
-router.get("/", TeamController.team_get_all);
+router.get("/", TeamController.get_all);
 
-router.post("/", TeamController.team_create_team);
+router.get("/ids", TeamController.get_all_ids);
 
-router.get("/:teamId", TeamController.team_get_team);
+router.post("/", TeamController.create_team);
 
-router.delete("/:teamId", TeamController.team_delete_team);
+router.get("/:teamId", TeamController.get_team);
 
-router.delete("/", TeamController.team_delete_all_teams);
+router.delete("/:teamId", TeamController.delete_team);
+
+router.delete("/", TeamController.delete_all_teams);
 
 module.exports = router;

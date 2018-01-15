@@ -5,14 +5,14 @@ const AuthController = require('../middleware/check-auth');
 const TournamentTeamController = require('../controllers/tournamentTeam');
 
 // Handle incoming GET requests to /tournamentTeam
-router.get("/", TournamentTeamController.tournamentTeam_get_all);
+router.get("/", TournamentTeamController.get_all);
 
-router.post("/", TournamentTeamController.tournamentTeam_create_tournamentTeam);
+router.post("/", TournamentTeamController.create_team);
 
-router.get("/:tournamentTeamId", TournamentTeamController.tournamentTeam_get_tournamentTeam);
+router.get("/:tournamentTeamId", TournamentTeamController.get_team);
 
-router.delete("/:tournamentTeamId", TournamentTeamController.tournamentTeam_delete_tournamentTeam);
+router.delete("/:tournamentTeamId", TournamentTeamController.delete_team);
 
-router.delete("/", TournamentTeamController.tournamentTeam_delete_all_tournamentTeams);
+router.delete("/", TournamentTeamController.delete_all_teams);
 
 module.exports = router;

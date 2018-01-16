@@ -70,12 +70,14 @@ exports.test_get_tournament = (req, res, next) => {
                 .then(matches => {
                     matches.forEach(match => {
                         console.log(match)
+                        let homeTeam;
+                        let awayTeam;
                         TournamentTeam.findOne({ 'tournament': tournament._id, 'groupPos': match.homeTeam })
                             .populate('team', 'name flag')
                             .exec()
                             .then(team => {
                                 console.log('test')
-                                const homeTeam = team.team._id
+                                homeTeam = team.team._id
                             })
                             .catch(err => {
                                 res.status(500).json({
@@ -86,7 +88,7 @@ exports.test_get_tournament = (req, res, next) => {
                             .populate('team', 'name flag')
                             .exec()
                             .then(team => {
-                                const awayTeam = team.team._id
+                                awayTeam = team.team._id
                             })
                             .catch(err => {
                                 res.status(500).json({

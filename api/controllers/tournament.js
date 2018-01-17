@@ -52,6 +52,8 @@ exports.create_tournament = (req, res, next) => {
 };
 
 exports.test_get_tournament = (req, res, next) => {
+    //TournamentMatch.remove()
+    //    .exec()
     console.log('test');
     Tournament.findById(req.params.tournamentId)
         .select('template name _id')
@@ -68,49 +70,25 @@ exports.test_get_tournament = (req, res, next) => {
                     return template.matches;
                 })
                 .then(matches => {
-                    matches.forEach(match => {
-                        console.log(match)
-                        let homeTeam;
-                        let awayTeam;
-                        TournamentTeam.findOne({ 'tournament': tournament._id, 'groupPos': match.homeTeam })
-                            .populate('team', 'name flag')
-                            .exec()
-                            .then(team => {
-                                console.log('test')
-                                homeTeam = team.team._id
-                            })
-                            .catch(err => {
-                                res.status(500).json({
-                                    error: err
-                                });
-                            });
-                        TournamentTeam.findOne({ 'tournament': tournament._id, 'groupPos': match.awayTeam })
-                            .populate('team', 'name flag')
-                            .exec()
-                            .then(team => {
-                                awayTeam = team.team._id
-                            })
-                            .catch(err => {
-                                res.status(500).json({
-                                    error: err
-                                });
-                            });
-                        const tournamentMatch = new TournamentMatch({
-                            tournament: tournament._id,
-                            matchNumber: match.matchNumber,
-                            matchType: match.matchType,
-                            homeTeam: homeTeam,
-                            matchNumber: awayTeam
+                    let list = []
+                    matches.forEach(async(match) => {
+                        if (match.matchType === 'GROUP') {
 
-                        })
-                        console.log(tournamentMatch)
+                            const homeTeam = await findTeam(tournament._id, match.homeTeam);
+
+                            const awayTeam = await findTeam(tournament._id, match.awayTeam);
+
+                            const tmatch = await createTeam(tournament._id, match, homeTeam, awayTeam);
+
+
+                            tmatch.save();
+                        }
+                    });
+
+                    res.status(200).json({
+                        tournament: tournament
                     });
                 })
-
-
-            res.status(200).json({
-                tournament: tournament
-            });
         })
         .catch(err => {
             res.status(500).json({
@@ -118,6 +96,44 @@ exports.test_get_tournament = (req, res, next) => {
             });
         });
 };
+
+createTeam = (tournamentId, match, homeTeam, awayTeam) => {
+    return TournamentMatch.find({ 'tournament': tournamentId, 'matchNumber': match.matchNumber })
+        .exec()
+        .then(result => {
+            console.log(result.length)
+            if (result.length < 1) {
+
+                console.log('not')
+                const tournamentMatch = new TournamentMatch({
+                    _id: mongoose.Types.ObjectId(),
+                    tournament: tournamentId,
+                    matchNumber: match.matchNumber,
+                    matchType: match.matchType,
+                    homeTeam: homeTeam.team._id,
+                    awayTeam: awayTeam.team._id
+                })
+                console.log(tournamentMatch);
+                return tournamentMatch;
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            });
+        });
+}
+
+findTeam = (tournamentId, groupPos) => {
+    return TournamentTeam.findOne({ 'tournament': tournamentId, 'groupPos': groupPos })
+        .populate('team', '_id name flag')
+        .exec()
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            });
+        });
+}
 
 exports.get_tournament = (req, res, next) => {
     Tournament.findById(req.params.tournamentId)

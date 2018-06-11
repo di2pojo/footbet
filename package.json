@@ -1,8 +1,8 @@
 {
-  "name": "rest-shop",
+  "name": "footbet",
   "version": "1.0.0",
-  "description": "A Node.js RESTful API Tutorial Project (Build a simple shop API)",
-  "main": "index.js",
+  "description": "A Node.js RESTful API",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js"
@@ -12,10 +12,9 @@
     "restful",
     "api"
   ],
-  "author": "Maximilian Schwarzmüller",
-  "license": "ISC",
+  "author": "Johan Polheimer",
   "dependencies": {
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^2.0.1",
     "bcrypt-promise": "^2.0.0",
     "body-parser": "^1.18.3",
     "dotenv": "^6.0.0",

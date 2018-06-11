@@ -14,6 +14,30 @@ exports.user_get_all = (req, res, next) => {
 
 };
 
+exports.create = async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  const body = req.body;
+
+  let err, user;
+  [err, user] = await to(User.find({
+    where: {
+      [Op.or]: [{ username: body.username }, { email: body.username }]
+    }
+  }));
+  
+  if(err) return ReE(res, err, 422);
+
+  if(user){
+    return ReE(res, 'User already exists!');
+  } else {
+    [err, user] = await to(User.create(body));
+    
+    if(err) return ReE(res, err, 422);
+    return ReS(res, {message:'Successfully created new user.', token:user.getJWT()}, 201);
+  }
+};
+
+
 exports.user_signup = (req, res, next) => {
   User.find({
     where: {

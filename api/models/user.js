@@ -1,6 +1,7 @@
 'use strict';
-const bcrypt 			= require('bcrypt');
-const bcrypt_p 			= require('bcrypt-promise');
+const bcrypt 	 = require('bcrypt');
+const bcrypt_p 	 = require('bcrypt-promise');
+const jwt        = require("jsonwebtoken");
 
 module.exports = (sequelize, DataTypes) => {
     var Model = sequelize.define('User', {
@@ -36,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
 
         return this;
     }
+
+    Model.prototype.getJWT = () => {
+        let expiration_time = parseInt(CONFIG.jwt_expiration);
+        return "Bearer "+jwt.sign({user_id:this.id}, CONFIG.jwt_encryption, {expiresIn: expiration_time});
+    };
 
     Model.prototype.toWeb = (pw) => {
         let json = this.toJSON();

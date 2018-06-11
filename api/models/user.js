@@ -1,15 +1,46 @@
-const mongoose = require('mongoose');
+'use strict';
+const bcrypt 			= require('bcrypt');
+const bcrypt_p 			= require('bcrypt-promise');
 
-const userSchema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    username: { type: String, required: true },
-    email: { 
-        type: String, 
-        required: true, 
-        unique: true, 
-        match: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
-    },
-    password: { type: String, required: true }
-});
+module.exports = (sequelize, DataTypes) => {
+    var Model = sequelize.define('User', {
+        username  : {type: DataTypes.STRING, allowNull: false, unique: true},
+        first     : DataTypes.STRING,
+        last      : DataTypes.STRING,
+        email     : {type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: {msg: "Email invalid."} }},
+        password  : DataTypes.STRING,
+    });
 
-module.exports = mongoose.model('User', userSchema);
+    Model.beforeSave(async (user, options) => {
+        let err;
+        if (user.changed('password')){
+            let salt, hash
+            [err, salt] = await to(bcrypt.genSalt(10));
+            if(err) TE(err.message, true);
+
+            [err, hash] = await to(bcrypt.hash(user.password, salt));
+            if(err) TE(err.message, true);
+
+            user.password = hash;
+        }
+    });
+
+    Model.prototype.comparePassword = async (pw) => {
+        let err, pass
+        if(!this.password) TE('password not set');
+
+        [err, pass] = await to(bcrypt_p.compare(pw, this.password));
+        if(err) TE(err);
+
+        if(!pass) TE('invalid password');
+
+        return this;
+    }
+
+    Model.prototype.toWeb = (pw) => {
+        let json = this.toJSON();
+        return json;
+    };
+
+    return Model;
+};

@@ -1,17 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const AuthController = require('../middleware/check-auth');
 
 const TournamentController = require('../controllers/tournament');
+const AuthController = require('../middleware/check-auth');
 
-// Handle incoming GET requests to /tournament
-router.get("/", TournamentController.get_all);
+router.get("/", TournamentController.tournament_get_all);
 
-router.post("/", TournamentController.create_tournament);
+router.post("/create", TournamentController.tournament_create);
 
-router.get("/:tournamentId", TournamentController.get_tournament);
-router.get("/test/:tournamentId", TournamentController.test_get_tournament);
+router.post("/createteam", TournamentController.tournament_team_create);
 
-router.delete("/:tournamentId", TournamentController.delete_tournament);
+router.post("/creatematch", TournamentController.tournament_match_create);
 
 module.exports = router;

@@ -1,25 +1,48 @@
+
+require('./api/config/config'); 
+require('./global_functions');
+
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
+const models = require("./api/models");
 
-const productRoutes = require("./api/routes/products");
-const orderRoutes = require("./api/routes/orders");
-const tournamentTemplateRoutes = require("./api/routes/tournamentTemplate");
-const tournamentRoutes = require("./api/routes/tournament");
-const tournamentTeamRoutes = require("./api/routes/tournamentTeam");
-const teamRoutes = require("./api/routes/team");
 const userRoutes = require('./api/routes/user');
+const tournamentRoutes = require('./api/routes/tournament');
 
-mongoose.connect(
-    "mongodb://admin:" +
-    process.env.MONGO_ATLAS_PW +
-    "@cluster0-shard-00-00-ltsqk.mongodb.net:27017,cluster0-shard-00-01-ltsqk.mongodb.net:27017,cluster0-shard-00-02-ltsqk.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin", {
-        useMongoClient: true
-    }
-);
-mongoose.Promise = global.Promise;
+models.sequelize.authenticate().then(() => {
+    console.log('Connected to SQL database:', CONFIG.db_name);
+})
+.catch(err => {
+    console.error('Unable to connect to SQL database:', CONFIG.db_name, err);
+});
+
+models.Tournament.hasMany( models.TournamentTeam, { as: 'teams', foreignKey : 'tournamentTeam' } );
+models.TournamentTeam.belongsTo(models.Tournament, {foreignKey : 'tournamentTeam'});
+models.Tournament.hasMany( models.TournamentMatch, { as: 'matches', foreignKey : 'tournamentMatch' } );
+models.TournamentMatch.belongsTo(models.Tournament, {foreignKey : 'tournamentMatch'});
+
+models.sequelize
+.sync({
+    force: true
+}).then(() => {
+    models.User.findOne({
+        where: {
+            username: "admin"
+        }
+    }).then((admin) => {
+        if (!admin){
+            models.User.create({
+                username: "admin",
+                first: "Johan",
+                last: "Polheimer",
+                email: "johan@polheimer.com",
+                password: "test"
+            })
+        }
+    })
+})
 
 app.use(morgan("dev"));
 app.use('/uploads', express.static('uploads'));
@@ -40,13 +63,8 @@ app.use((req, res, next) => {
 });
 
 // Routes which should handle requests
-app.use("/products", productRoutes);
-app.use("/orders", orderRoutes);
-app.use("/tournamentTemplates", tournamentTemplateRoutes);
-app.use("/tournaments", tournamentRoutes);
-app.use("/tournamentTeams", tournamentTeamRoutes);
-app.use("/teams", teamRoutes);
 app.use("/user", userRoutes);
+app.use("/tournament", tournamentRoutes);
 
 app.use((req, res, next) => {
     const error = new Error("Not found");

@@ -1,13 +1,17 @@
-const mongoose = require('mongoose');
+'use strict';
 
-const tournamentMatchSchema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    tournament: { type: mongoose.Schema.Types.ObjectId, ref: 'Tournament', required: true },
-    matchNumber: { type: Number, required: true },
-    matchType: { type: String, enum: ['GROUP', 'KNOCKOUT'], required: true },
-    nextMatch: { type: Number },
-    homeTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
-    awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true }
-});
+module.exports = (sequelize, DataTypes) => {
+    var Model = sequelize.define('TournamentMatch', {
+        matchId   : {type: DataTypes.INTEGER, allowNull: false},
+        homeTeam  : {type: DataTypes.STRING, allowNull: false},
+        awayTeam  : {type: DataTypes.STRING, allowNull: false},
+        date      : {type: DataTypes.DATE, allowNull: false}
+    });
 
-module.exports = mongoose.model('TournamentMatch', tournamentMatchSchema);
+    Model.prototype.toWeb = function (pw) {
+        let json = this.toJSON();
+        return json;
+    };
+
+    return Model;
+};

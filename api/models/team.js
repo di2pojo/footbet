@@ -1,9 +1,16 @@
-const mongoose = require('mongoose');
+'use strict';
 
-const teamSchema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    name: { type: String, required: true },
-    flag: { type: String, required: true }
-});
+module.exports = (sequelize, DataTypes) => {
+    var Model = sequelize.define('Team', {
+        name      : {type: DataTypes.STRING, allowNull: false, unique: true},
+        flag      : DataTypes.STRING,
+        type      : DataTypes.STRING,
+    });
 
-module.exports = mongoose.model('Team', teamSchema);
+    Model.prototype.toWeb = function (pw) {
+        let json = this.toJSON();
+        return json;
+    };
+
+    return Model;
+};

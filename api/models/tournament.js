@@ -1,9 +1,15 @@
-const mongoose = require('mongoose');
+'use strict';
 
-const tournamentSchema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    name: { type: String, required: true },
-    template: { type: mongoose.Schema.Types.ObjectId, ref: 'TournamentTemplate', required: true }
-});
+module.exports = (sequelize, DataTypes) => {
+    var Model = sequelize.define('Tournament', {
+        name      : {type: DataTypes.STRING, allowNull: false, unique: true},
+        type      : {type: DataTypes.STRING, allowNull: false, unique: true}
+    });
 
-module.exports = mongoose.model('Tournament', tournamentSchema);
+    Model.prototype.toWeb = function (pw) {
+        let json = this.toJSON();
+        return json;
+    };
+
+    return Model;
+};

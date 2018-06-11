@@ -1,14 +1,15 @@
+require('../config/config'); 
 const jwt = require('jsonwebtoken');
 
 exports.checkAuth = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        const decoded = jwt.verify(token, CONFIG.jwt_encryption);
         req.userData = decoded;
         next();
     } catch (error) {
         return res.status(401).json({
-            message: 'Auth failed'
+            message: 'Auth failed - checkAuth'
         });
     }
 };
@@ -16,7 +17,7 @@ exports.checkAuth = (req, res, next) => {
 exports.adminAuth = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        const decoded = jwt.verify(token, CONFIG.jwt_encryption);
         if ('admin' !== decoded.username) {
             throw new Error('Not Admin')
         }

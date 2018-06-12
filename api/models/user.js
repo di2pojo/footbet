@@ -26,8 +26,9 @@ module.exports = (sequelize, DataTypes) => {
         }
     });
 
-    Model.prototype.comparePassword = async (pw) => {
+    Model.prototype.comparePassword = async function(pw) {
         let err, pass
+        console.log(this);
         if(!this.password) TE('password not set');
 
         [err, pass] = await to(bcrypt_p.compare(pw, this.password));
@@ -38,12 +39,12 @@ module.exports = (sequelize, DataTypes) => {
         return this;
     }
 
-    Model.prototype.getJWT = () => {
+    Model.prototype.getJWT = function() {
         let expiration_time = parseInt(CONFIG.jwt_expiration);
         return "Bearer "+jwt.sign({user_id:this.id}, CONFIG.jwt_encryption, {expiresIn: expiration_time});
     };
 
-    Model.prototype.toWeb = (pw) => {
+    Model.prototype.toWeb = function(pw) {
         let json = this.toJSON();
         return json;
     };

@@ -2,6 +2,7 @@ require('../config/config');
 const User = require('../models').User;
 const Op = require('sequelize').Op;
 const bcrypt 			= require('bcrypt');
+const bcrypt_p 	 = require('bcrypt-promise');
 const jwt = require("jsonwebtoken");
 
 exports.user_get_all = (req, res, next) => {
@@ -15,7 +16,6 @@ exports.user_get_all = (req, res, next) => {
 };
 
 exports.create = async (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
   const body = req.body;
 
   let err, user;
@@ -67,47 +67,28 @@ exports.user_signup = (req, res, next) => {
   });
 };
 
-exports.user_login = (req, res, next) => {
-  User.findOne({
+exports.login = async function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  const body = req.body;
+
+  let err, user;
+  [err, user] = await to(User.findOne({
     where: {
-      [Op.or]: [{ username: req.body.username }, { email: req.body.username }]
+      [Op.or]: [{ username: body.username }, { email: body.username }]
     }
-  })
-  .then(user => {
-    if (!user) {
-      return res.status(401).json({
-        message: "Auth failed2"
-      });
-    }
-    console.log(req.body.password);
-    bcrypt.compare(req.body.password, user.password, (err, result) => {
-      if (err) {
-        return res.status(401).json({
-          message: "Auth failed - wrong pwd1"
-        });
-      }
-      if (result) {
-        const token = jwt.sign(
-          {
-            username: user.username,
-            email: user.email,
-            userId: user.id
-          },
-          CONFIG.jwt_encryption,
-          {
-            expiresIn: "1h"
-          }
-        );
-        return res.status(200).json({
-          message: "Auth successful",
-          token: token
-        });
-      }
-      res.status(401).json({
-        message: "Auth failed - wrong pwd"
-      });
-    });
-  })
+  }));
+  
+  if(err) return ReE(res, err, 422);
+
+  if(!user){
+    return ReE(res, 'Not Registered!');
+  } else {
+    [err, pass] = await to(user.comparePassword(req.body.password));
+    if(err) return ReE(res, err, 422);
+    if(!pass) TE('invalid password');
+
+    return ReS(res, {message:'Login successful!', user, token:user.getJWT()});
+  }
 };
 
 exports.user_delete = (req, res, next) => {

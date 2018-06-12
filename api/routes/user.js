@@ -6,10 +6,9 @@ const AuthController = require('../middleware/check-auth');
 
 router.get("/", AuthController.checkAuth, UserController.user_get_all);
 
-router.post("/signup", UserController.user_signup);
 router.post("/create", UserController.create);
 
-router.post("/login", UserController.user_login);
+router.post("/login", UserController.login);
 
 router.delete("/delete/:userId", AuthController.adminAuth, UserController.user_delete);
 

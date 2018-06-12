@@ -18,7 +18,7 @@ exports.adminAuth = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
         const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-        if ('admin' !== decoded.username) {
+        if (1 !== decoded.user_id) {
             throw new Error('Not Admin')
         }
         req.userData = decoded;

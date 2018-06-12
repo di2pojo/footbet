@@ -5,14 +5,27 @@ const bcrypt 			= require('bcrypt');
 const bcrypt_p 	 = require('bcrypt-promise');
 const jwt = require("jsonwebtoken");
 
-exports.user_get_all = (req, res, next) => {
-  
-  User.find().then(function (users) {
-      res.json(users);
-  }).catch(function(err) {
-      res.err(404);
-  });
+exports.get = async (req, res) => {
+  let err, user;
+  [err, user] = await to(User.findById(req.params.userId));  
+  if(err) return done(err, false);
+  if(user) {
+    ReS(res, {user:user}, 201);
+  }else{
+    ReE(res, 'User not found');
+  }
+}
 
+exports.get_all = async (req, res) => {
+  let err, users;
+  [err, users] = await to(User.findAll());  
+  console.log(users);
+  if(err) ReE(res, err, 422);
+  if(users) {
+    ReS(res, {users:users}, 201);
+  }else{
+    ReE(res, 'No users found');
+  }
 };
 
 exports.create = async (req, res) => {
@@ -25,46 +38,16 @@ exports.create = async (req, res) => {
     }
   }));
   
-  if(err) return ReE(res, err, 422);
+  if(err) ReE(res, err, 422);
 
   if(user){
-    return ReE(res, 'User already exists!');
+    ReE(res, 'User already exists!');
   } else {
     [err, user] = await to(User.create(body));
     
-    if(err) return ReE(res, err, 422);
-    return ReS(res, {message:'Successfully created new user.', token:user.getJWT()}, 201);
+    if(err) ReE(res, err, 422);
+    ReS(res, {message:'Successfully created new user.', token:user.getJWT()}, 201);
   }
-};
-
-
-exports.user_signup = (req, res, next) => {
-  User.find({
-    where: {
-      [Op.or]: [{ username: req.body.username }, { email: req.body.username }]
-    }
-  })
-  .then(user => {
-    if (user) {
-      return res.status(409).json({
-        message: "User exists"
-      });
-    } else {
-      User.create(req.body)
-      .then(result => {
-        console.log(result);
-        res.status(201).json({
-          message: "User created"
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        res.status(500).json({
-          error: err
-        });
-      });
-    }
-  });
 };
 
 exports.login = async function(req, res) {
@@ -91,24 +74,18 @@ exports.login = async function(req, res) {
   }
 };
 
-exports.user_delete = (req, res, next) => {
-  User.destroy({
-    where: {
-      id: req.params.userId
-    }
-  })
-  .then(result => {
-    res.status(200).json({
-      message: "User deleted"
-    });
-  })
-  .catch(err => {
-    console.log(err);
-    res.status(500).json({
-      error: err
-    });
-  });
-};
+exports.delete = async (req, res) => {  
+  let err, user;
+  [err, user] = await to(User.findById(req.params.userId));  
+  if(err) return done(err, false);
+  if(user) {
+    [err, user] = await to(user.destroy());
+    if(err) ReE(res, 'error occured trying to delete user');
+  }else{
+    ReE(res, 'User not found');
+  }
+  ReS(res, {message:'Deleted User'}, 204);
+}
 
 exports.user_change_password = (req, res, next) => {
   const token = req.headers.authorization.split(" ")[1];

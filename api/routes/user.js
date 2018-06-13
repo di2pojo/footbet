@@ -14,6 +14,6 @@ router.post("/login", UserController.login);
 
 router.delete("/delete/:userId", AuthController.adminAuth, UserController.delete);
 
-router.post("/pwdchange", AuthController.checkAuth, UserController.user_change_password);
+router.post("/update", AuthController.checkAuth, UserController.update);
 
 module.exports = router;

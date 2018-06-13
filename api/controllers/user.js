@@ -8,23 +8,23 @@ const jwt = require("jsonwebtoken");
 exports.get = async (req, res) => {
   let err, user;
   [err, user] = await to(User.findById(req.params.userId));  
-  if(err) return done(err, false);
+  if(err) return ReE(res, err, 422);
   if(user) {
     ReS(res, {user:user}, 201);
   }else{
-    ReE(res, 'User not found');
+    return ReE(res, 'User not found');
   }
-}
+};
 
 exports.get_all = async (req, res) => {
   let err, users;
   [err, users] = await to(User.findAll());  
   console.log(users);
-  if(err) ReE(res, err, 422);
+  if(err) return ReE(res, err, 422);
   if(users) {
     ReS(res, {users:users}, 201);
   }else{
-    ReE(res, 'No users found');
+    return ReE(res, 'No users found');
   }
 };
 
@@ -38,19 +38,19 @@ exports.create = async (req, res) => {
     }
   }));
   
-  if(err) ReE(res, err, 422);
+  if(err) return ReE(res, err, 422);
 
   if(user){
-    ReE(res, 'User already exists!');
+    return ReE(res, 'User already exists!');
   } else {
     [err, user] = await to(User.create(body));
     
-    if(err) ReE(res, err, 422);
+    if(err) return ReE(res, err, 422);
     ReS(res, {message:'Successfully created new user.', token:user.getJWT()}, 201);
   }
 };
 
-exports.login = async function(req, res) {
+exports.login = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   const body = req.body;
 
@@ -70,7 +70,7 @@ exports.login = async function(req, res) {
     if(err) return ReE(res, err, 422);
     if(!pass) TE('invalid password');
 
-    return ReS(res, {message:'Login successful!', user, token:user.getJWT()});
+    ReS(res, {message:'Login successful!', user, token:user.getJWT()});
   }
 };
 
@@ -80,53 +80,43 @@ exports.delete = async (req, res) => {
   if(err) return done(err, false);
   if(user) {
     [err, user] = await to(user.destroy());
-    if(err) ReE(res, 'error occured trying to delete user');
+    if(err) return ReE(res, 'error occured trying to delete user');
   }else{
-    ReE(res, 'User not found');
+    return ReE(res, 'User not found');
   }
-  ReS(res, {message:'Deleted User'}, 204);
-}
+  ReS(res, {message:'Deleted User'});
+};
 
-exports.user_change_password = (req, res, next) => {
+exports.update = async (req, res) => {
   const token = req.headers.authorization.split(" ")[1];
   const decoded = jwt.verify(token, CONFIG.jwt_encryption);
-  var userToChange = req.body.username;
+  let err, user, data, pass
+  user = req.user;
+  data = req.body;
+  var userToChange = data.userId;
   if ('admin' !== decoded.username) {
-    userToChange = decoded.username;
+    if (decoded.userId !== data.userId){
+      return ReE(res, 'Not Authorized');
+    }
+    userToChange = decoded.userId;
   }
-  User.findOne({
-    where: {
-      username: userToChange
+  [err, user] = await to(User.findById(userToChange));
+  if(err) return ReE(res, err, 422);
+  if(user) {
+    if ('admin' !== decoded.username) {
+      [err, pass] = await to(user.comparePassword(data.currentPassword));
+      if(err) return ReE(res, err, 422);
+      if(!pass) TE('invalid password');
     }
-  })
-  .then(user => {
-    if (!user) {
-      return res.status(401).json({
-        message: "User not found"
-      });
+    user.set(data);
+    console.log(user);
+    [err, user] = await to(user.save());
+    if(err){
+        if(err.message=='Validation error') err = 'The email address is already in use';
+        return ReE(res, err);
     }
-    console.log(req.body.password);
-    bcrypt.compare(req.body.currentPassword, user.password, (err, result) => {
-      if (err) {
-        return res.status(401).json({
-          message: "Auth failed"
-        });
-      }
-      if (result) {
-        User.update({
-          password: req.body.newPassword,
-        }, {
-          where: {
-            id: user.id
-          }, individualHooks: true
-        });
-        return res.status(200).json({
-          message: "Password changed successfully"
-        });
-      }
-      res.status(401).json({
-        message: "Auth failed"
-      });
-    });
-  });  
+    ReS(res, {message :'Updated User: '+user.email});
+  } else {
+    return ReE(res, 'User not found');
+  }
 };
